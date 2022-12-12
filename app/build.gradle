@@ -55,9 +55,14 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.5'
 
     // Architecture Components
+    implementation platform('com.google.firebase:firebase-bom:31.1.0')
+
     //Navigation dependencies
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.0-rc1'
+    implementation 'com.google.firebase:firebase-auth-ktx:21.1.0'
+    testImplementation project(path: ':app')
+    androidTestImplementation project(path: ':app')
     kapt "androidx.lifecycle:lifecycle-compiler:$archLifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-extensions:$archLifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$archLifecycleVersion"

@@ -21,10 +21,75 @@ import org.junit.runner.RunWith
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
-//Medium Test to test the repository
+
 @MediumTest
 class RemindersLocalRepositoryTest {
+    @get:Rule
+    var rule = InstantTaskExecutorRule()
 
-//    TODO: Add testing implementation to the RemindersLocalRepository.kt
+    private lateinit var repoOfLocalReminders: RemindersLocalRepository
 
+    private lateinit var database: RemindersDatabase
+
+    @Before
+    fun openDb() {
+
+        database = Room.inMemoryDatabaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            RemindersDatabase::class.java
+        ).allowMainThreadQueries().build()
+
+        repoOfLocalReminders = RemindersLocalRepository(
+            database.reminderDao(),
+            Dispatchers.Main
+        )
+    }
+
+    @After
+    fun cleanUp() {
+        database.close()
+    }
+
+
+    @Test
+    fun reminderSaveById() = runBlocking {
+        val rm = ReminderDTO("Egypt", "Food Restaurant", "Cairo", 30.14870719, 31.34233941)
+
+        repoOfLocalReminders.saveReminder(rm)
+        val result = repoOfLocalReminders.getReminder(rm.id) as? Result.Success
+
+        assertThat(result is Result.Success, `is`(true))
+        result as Result.Success
+
+        assertThat(result.data.title, `is`(rm.title))
+        assertThat(result.data.description, `is`(rm.description))
+        assertThat(result.data.latitude, `is`(rm.latitude))
+        assertThat(result.data.longitude, `is`(rm.longitude))
+        assertThat(result.data.location, `is`(rm.location))
+    }
+
+
+    @Test
+    fun reminderDeleteById()= runBlocking {
+        val rm = ReminderDTO("Shop(HESHAM)", "GO TO SOP", "KIT KAT", 8.0, 6.0)
+        repoOfLocalReminders.saveReminder(rm)
+        repoOfLocalReminders.deleteAllReminders()
+
+        val result = repoOfLocalReminders.getReminders()
+        assertThat(result is Result.Success, `is`(true))
+        result as Result.Success
+        assertThat(result.data, `is` (emptyList()))
+    }
+
+    @Test
+    fun reminderReturnByError() = runBlocking {
+        val rm = ReminderDTO("My Shop", "Get to the Shop", "Abuja", 6.54545, 7.54545)
+        repoOfLocalReminders.saveReminder(rm)
+        repoOfLocalReminders.deleteAllReminders()
+
+        val result = repoOfLocalReminders.getReminder(rm.id)
+        assertThat(result is Result.Error, `is`(true))
+        result as Result.Error
+        assertThat(result.message, `is`("Not found"))
+    }
 }
